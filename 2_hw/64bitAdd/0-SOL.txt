@@ -1,0 +1,28 @@
+GNU gdb (GDB) Fedora 7.9.1-20.fc22
+Copyright (C) 2015 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from 64bitAdd.out...done.
+(gdb) Breakpoint 1 at 0x8048074: file 64bitAdd.s, line 25.
+(gdb) Breakpoint 2 at 0x804808d
+(gdb) Starting program: /home/kelui1/50_cs/homework/Homework2/64bitAdd/64bitAdd.out 
+
+Breakpoint 1, _start () at 64bitAdd.s:25
+25	    movl num1(,%esi,wordsize), %edx
+(gdb) (gdb) (gdb) (gdb) (gdb) Continuing.
+
+Breakpoint 2, 0x0804808d in ?? ()
+(gdb) $1 = -2
+(gdb) $2 = -2
+(gdb) Kill the program being debugged? (y or n) [answered Y; input not from terminal]
+(gdb) 

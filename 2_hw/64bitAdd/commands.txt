@@ -1,0 +1,18 @@
+b _start
+b start_if
+run
+
+set ((int*)&num1)[0] = -1
+set ((int*)&num2)[0] = -1
+set ((int*)&num1)[1] = -1
+set ((int*)&num2)[1] = -1
+p ((int*)&num1)[0]
+p ((int*)&num2)[0]
+p ((int*)&num1)[1]
+p ((int*)&num2)[1]
+continue
+
+p $ecx
+
+continue
+

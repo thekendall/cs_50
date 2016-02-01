@@ -1,0 +1,11 @@
+sfile = 64bitAdd.s
+exe = 64bitAdd.out
+
+64bitAdd.out: 64bitAdd.o
+	ld -melf_i386 -o $(exe) 64bitAdd.o
+	python3 tester.py
+64bitAdd.o: $(sfile)
+	as --32 --gstabs -o 64bitAdd.o $(sfile)
+	
+clean:
+	rm -fr $(exe) 64bitAdd.o
