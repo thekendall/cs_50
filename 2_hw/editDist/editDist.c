@@ -26,13 +26,16 @@ int editDist(char* word1, char* word2){
   int i,j,dist;
 
   //intialize distances to length of the substrings
+  printf("Initialize Distances to length of substrings\n");
   for(i = 0; i < word2_len + 1; i++){
     oldDist[i] = i;
     curDist[i] = i;
   }
 
+  printf("For each in word_len");
   for(i = 1; i < word1_len + 1; i++){
     curDist[0] = i;
+
     for(j = 1; j < word2_len + 1; j++){
       if(word1[i-1] == word2[j-1]){
         curDist[j] = oldDist[j - 1];

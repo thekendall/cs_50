@@ -1,3 +1,5 @@
+# Kendall Lui 
+# Computer Science 50
 # this program computes the sum of two 64bit numbers
 # made for a 32 bit machine which is what makes this
 # a challenge.
@@ -22,20 +24,13 @@ num2:
 .text
 _start:
     #initialize registers
-    movl (4)+num1(,%ecx,wordsize), %eax
-    movl num1, %edx
-    addl (4)+num2(,%ecx,wordsize), %eax
-    addl num2, %edx
-	# if %eax < num1[1] || %eax < num2[1]
-	cmp 4+num1(,%ecx,wordsize), %eax # if %eax < num1[1]
-	jl if_statement_true
-	cmp 4+num2(,%ecx,wordsize), %eax # if %eax < num2[1]
-	jl if_statement_true
-	jmp else #else
-	if_statement_true:
-		addl $1, %edx
-	else:
-
+    movl (4)+num1(,%ecx,wordsize), %eax # place num1 into eax
+    movl num1, %edx # place num1 second part into edx
+    addl num2, %edx # Add second part from num2 to num1 stored in edx
+    addl (4)+num2(,%ecx,wordsize), %eax # Add lsbytes to eax 
+	jnc done # check to see if the addition above carries
+	addl $1, %edx # if it does add 1
+	#else jump to done
 done:
 	movl %eax, %eax
 

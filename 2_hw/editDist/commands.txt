@@ -1,0 +1,8 @@
+b _start
+b_done
+run
+set a_min = 40
+set b_min = 3100
+continue
+p return_min
+kill
