@@ -7,13 +7,26 @@
 
 oldDist_ptr:
 	.long 0
-newDist_ptr:
+currDist_ptr:
 	.long 0
 #global_vars
 string1:
-	.string "What up?"
+	.rept 100
+		.byte 0
+	.endr
 string2: 
-	.string "What was that?"
+	.rept 100
+		.byte 0
+	.endr
+/*
+string1:
+
+	.string "hello"
+
+string2:
+	.string "boo!"
+*/
+
 
 str1_len:
 	.long 0
@@ -67,6 +80,14 @@ strlen:
 		pop %ecx
 		pop %ebx
 	ret
+				#swap
+				#push currDist_ptr
+				#push oldDist_ptr
+				#pop currDist_ptr
+				#pop oldDist_ptr
+	#movl $1, %edx
+	#movl (ptr_b), %ecx
+	#movl (%ecx,%edx,4), %ebx
 
 _start:
   	# int word1_len = strlen(word1);
@@ -78,6 +99,12 @@ _start:
 	push $string2
 	call strlen
 	movl %eax, str2_len
+	
+	movl $oldDist, %eax # &oldDist
+	#set pointer ptr_a = &oldDist
+	movl %eax, oldDist_ptr 
+	movl $currDist, %eax # &currDirs 
+	movl %eax, currDist_ptr
 
 
   	//intialize distances to length of the substrings
@@ -85,100 +112,76 @@ _start:
 	movl $0, %ecx #int i = 0
 	for_start_init:
 		cmpl %ecx, str2_len # word2_len - %ecx
-		jbe end_for_init # i <= word2_len
+		jb end_for_init # i <= word2_len
 		movl %ecx, oldDist(,%ecx, wordsize) #oldDist[i] = i;
 		movl %ecx, currDist(,%ecx, wordsize) #curDist[i] = i;
 		incl %ecx # i++
 		jmp for_start_init
 	end_for_init:
 
-  	#for(i = 1; i < word1_len + 1; i++)
-
-	movl $1, %ecx #int i = 1
-	for_start_alg_i:
-		cmpl %ecx, str1_len # word1_len - i
-		jbe end_for_alg_i # i <= word2_len
-    		movl %ecx, currDist #curDist[0] = i;
-
-    		#for(j = 1; j <= word2_len; j++){
-			movl $1, %ebx # j = 1
-			for_start_alg_j:
-				cmpl %ebx, str2_len # word2_len - j (%ebx) COMPARING INT
-				jbe end_for_init # i <= word2_len
-					movb (string1-1)(,%ecx), %dl # edx = word[i-1]
-					cmpb (string2-1)(,%ebx), %dl  # if(word1[i-1] == word2[j-1]): COMPARING BYTE
-						jnz else_word1_word2
-							oldDist
-							movl currDist(,%ebx,wordsize) #curDist[j] = oldDist[j - 1];
-						else_word1_word2:
-        					#curDist[j] = min(min(oldDist[j], //deletion
-        					#curDist[j-1]), //insertion
-                          	#oldDist[j-1]) + 1; //subtitution
-							
-				incl %ebx # j++
-			end_for_alg_j:
+	#for(i = 1; i <= word1_len; i++)
+	movl $1, %esi #i = 1
+	for_i_str1_len:
+		cmpl %esi, str1_len # i <= word1_len
+		jb end_for_i_str1_len
 			
-			incl %ecx #i++
-	end_for_alg_i:
-	/*	
-    }//for each character in the second word
-    swap(&oldDist, &curDist);
-  }//for each character in the first word
-*/
+			movl (currDist_ptr), %edx # *currDist_ptr
+			movl %esi, (%edx) # **currDist_ptr
+
+			#for(j = 1; j <= word2_len; j++){
+			movl $1, %edi # j = 1
+			for_j_str2_len:
+				cmpl %edi, str2_len
+				jb end_for_j_str2_len # j <= word2_len
+
+					# if word1[i-1] == word[j-1]
+					if_word1_word2:
+						movb (string1 - 1)(,%esi), %dl
+						movb (string2 - 1)(,%edi), %al
+						cmpb %al, %dl
+						jnz else_word1_word2 
+							# True
+							movl (currDist_ptr), %edx # edx = *currDist_ptr
+							movl (oldDist_ptr), %ecx # ecx = *oldDist_ptr
+							movl (-4)(%ecx,%edi,4), %ebx # ebx = ecx[j-1]
+							movl %ebx,(%edx,%edi,4) # edx[j] = ebx = ecx[j-1]
+						jmp end_if_word1_word2
+
+						else_word1_word2:
+							# else
+							movl (currDist_ptr), %edx # edx = *currDist_ptr
+							pushl (-4)(%edx,%edi,4) # push edx[edi-1]
+							movl (oldDist_ptr), %edx # edx = *oldDist_ptr
+							pushl (%edx,%edi,4)
+							call min # min (oldDist[j], currDist[j-1])
+
+							pushl %eax #find min of previous min and oldDist - 1 
+							movl (oldDist_ptr), %edx # edx = *oldDist_ptr
+							pushl (-4)(%edx,%edi,4)
+							call min
+							incl %eax # min + 1
+		
+							movl (currDist_ptr), %edx # edx = *currDist_ptr
+							movl %eax, (%edx,%edi,4)
+
+						end_if_word1_word2:
+
+				incl %edi #j++
+				jmp for_j_str2_len
+			end_for_j_str2_len:
+				#swap
+				push currDist_ptr
+				push oldDist_ptr
+				pop currDist_ptr
+				pop oldDist_ptr
+
+		incl %esi #i++
+		jmp for_i_str1_len
+	end_for_i_str1_len:
+		movl str2_len ,%esi
+		movl (oldDist_ptr),%edx
+		movl (%edx,%esi,4), %eax
+
+
 done:
 	movl %eax, %eax
-
-
-/*
-int editDist(char* word1, char* word2){
-
-  int* oldDist = (int*)malloc((word2_len + 1) * sizeof(int));
-  int* curDist = (int*)malloc((word2_len + 1) * sizeof(int));
-
-  int i,j,dist;
-
-  //intialize distances to length of the substrings
-  for(i = 0; i < word2_len + 1; i++){
-    oldDist[i] = i;
-    curDist[i] = i;
-  }
-
-  for(i = 1; i < word1_len + 1; i++){
-    curDist[0] = i;
-    for(j = 1; j < word2_len + 1; j++){
-      if(word1[i-1] == word2[j-1]){
-        curDist[j] = oldDist[j - 1];
-      }//the characters in the words are the same
-      else{
-        curDist[j] = min(min(oldDist[j], //deletion
-                          curDist[j-1]), //insertion
-                          oldDist[j-1]) + 1; //subtitution
-      }
-    }//for each character in the second word
-    swap(&oldDist, &curDist);
-  }//for each character in the first word
-
-  dist = oldDist[word2_len];//using oldDist instead of curDist because of the last swap
-  free(oldDist);
-  free(curDist);
-  return dist;
-
-}
-*/
-/*
-void swap(int** a, int** b){
-  int* temp = *a;
-  *a = *b;
-  *b = temp;
-}
-*/
-# swap swaps pointer of old_ptr and new_ptr
-# uses eax and edx
-/*
-swap:
-	mov old_ptr, %edx # store the pointer stored in old_ptr in edx
-	mov new_ptr, %eax # store the pointer stored in new_ptr in eax
-	movl %eax, old_ptr # swap pointers
-	movl %edx, new_ptr # swap pointers
-	ret
-*/
