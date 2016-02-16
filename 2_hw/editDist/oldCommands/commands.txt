@@ -1,0 +1,25 @@
+b _start
+b_done
+run
+print ((int*)&a_swap)[0]
+print ((int*)&a_swap)[1]
+print ((int*)&a_swap)[2]
+print ((int*)&a_swap)[3]
+print ((int*)&a_swap)[4]
+print ((int*)&b_swap)[0]
+print ((int*)&b_swap)[1]
+print ((int*)&b_swap)[2]
+print ((int*)&b_swap)[3]
+print ((int*)&b_swap)[4]
+continue
+print ((int*)&a_swap)[0]
+print ((int*)&a_swap)[1]
+print ((int*)&a_swap)[2]
+print ((int*)&a_swap)[3]
+print ((int*)&a_swap)[4]
+print ((int*)&b_swap)[0]
+print ((int*)&b_swap)[1]
+print ((int*)&b_swap)[2]
+print ((int*)&b_swap)[3]
+print ((int*)&b_swap)[4]
+kill
