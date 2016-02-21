@@ -103,3 +103,24 @@ int main(int argc, char **argv){
 }//main
 
 
+int** matMult(int **a, int num_rows_a, int num_cols_a, int** b, int num_rows_b, int num_cols_b)
+{
+	int** result = (int**) malloc(num_rows_a * sizeof(int*)); //Allocate an Array of Integer pointers
+	int rowA; 
+	for(rowA = 0; rowA < num_rows_a; rowA++) // For loop iterates through all rows in A
+	{
+		result[rowA] = (int*) malloc(num_cols_b*sizeof(int*)); // We create a new row of integers in result
+		int colB; 
+		for(colB = 0; colB < num_cols_b; colB++) { // We iterate through all columns in B
+			int colA;
+			int dotSum = 0;
+			for(colA = 0; colA < num_cols_a; colA++) // Each Column in row will recieve a DotProduct 
+			{
+				dotSum += a[rowA][colA] * b[colA][colB];  // colA is the same as rowB due to matrix multiplication rules
+			}
+			result[rowA][colB] = dotSum; // RowA, ColB is set to dotSum
+		}
+	}
+	return result;
+
+}
