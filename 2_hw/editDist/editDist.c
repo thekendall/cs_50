@@ -27,16 +27,16 @@ int editDist(char* word1, char* word2){
 
   //intialize distances to length of the substrings
   printf("Initialize Distances to length of substrings\n");
-  for(i = 0; i < word2_len + 1; i++){
+  for(i = 0; i <= word2_len; i++){
     oldDist[i] = i;
     curDist[i] = i;
   }
 
   printf("For each in word_len");
-  for(i = 1; i < word1_len + 1; i++){
+  for(i = 1; i <= word1_len ; i++){
     curDist[0] = i;
 
-    for(j = 1; j < word2_len + 1; j++){
+    for(j = 1; j <= word2_len; j++){
       if(word1[i-1] == word2[j-1]){
         curDist[j] = oldDist[j - 1];
       }//the characters in the words are the same
@@ -57,11 +57,7 @@ int editDist(char* word1, char* word2){
 }
 
 int main(int argc, char** argv){
-  if(argc < 3){
-    printf("Usage: %s word1 word 2\n", argv[0]);
-    exit(1);
-  }
-  printf("The distance between %s and %s is %d.\n", argv[1], argv[2], editDist(argv[1], argv[2]));
+  printf("The distance between  %d.\n",editDist("hello", "SHITidjfidsfjisjf!"));
 
   return 0;
 }
