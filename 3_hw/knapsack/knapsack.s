@@ -99,10 +99,10 @@ knapsack:
 			subl (%ecx, %esi,wordsize), %edx
 			push %edx
 
-			movl %esi, %ecx
-			shll $2, %ecx
 
 			#push num_items - i -1
+			movl %esi, %ecx
+			#shll $2, %ecx
 			movl num_items(%ebp), %edx
 			subl %esi, %edx
 			subl $1, %edx
