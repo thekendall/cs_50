@@ -93,12 +93,12 @@ get_combs:
 
 	
 	debug2:
-	movl k(%ebp), %edx
 	movl len(%ebp), %eax
 	
 	
 	#while(len > k)
 	while_loop:
+	movl k(%ebp), %edx
 	cmpl %edx, len(%ebp) # len - k
 	jle end_while
 		#if(k == 1){
