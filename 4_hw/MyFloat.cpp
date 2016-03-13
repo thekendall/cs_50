@@ -40,22 +40,20 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 
 	copy_1.mantissa += 0x800000;
 	copy_2.mantissa += 0x800000;
-	int count = 0;
-	while(copy_1.mantissa < 0x1000000 && copy_2.mantissa < 0x1000000) 
+	if(copy_1.mantissa < 0x1000000 && copy_2.mantissa < 0x1000000) 
 	{
-		count++;
-		copy_1.mantissa <<= 1;
-		copy_2.mantissa <<= 1;
+		copy_1.mantissa >>= 1;
+		copy_2.mantissa >>= 1;
 		copy_2.exponent--;
 		copy_1.exponent--;
 	}
 
 	while(copy_1.exponent != copy_2.exponent) {
 		if(copy_1.exponent > copy_2.exponent) {
-			copy_2.exponent++;
+			copy_2.exponent--;
 			copy_2.mantissa = copy_2.mantissa >> 1;
 		} else {
-			copy_1.exponent++;
+			copy_1.exponent--;
 			copy_1.mantissa = copy_1.mantissa >> 1;
 		}
 	}
@@ -65,35 +63,27 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 	{
 		copy_1.mantissa += copy_2.mantissa;
 		copy_1.sign = copy_1.sign;
-	} else if (copy_1.sign < copy_2.sign) {
-		if(copy_1.mantissa > copy_2.mantissa) {
-			copy_1.mantissa -= copy_2.mantissa;
-			copy_1.sign = 0;
-		} else {
-			copy_1.mantissa = copy_2.mantissa - copy_1.mantissa;
-			copy_1.sign = 1;
-		}
 	} else {
 		if(copy_1.mantissa > copy_2.mantissa) {
 			copy_1.mantissa -= copy_2.mantissa;
-			copy_1.sign = 1;
+			copy_1.sign = copy_1.sign > 0;
 		} else {
 			copy_1.mantissa = copy_2.mantissa - copy_1.mantissa;
-			copy_1.sign = 0;
+			copy_1.sign = copy_2.sign > 0;
 		}
 		
 	}
 
+	if(copy_1.mantissa == 0) {
+		copy_1.exponent = 0;
+		copy_1.sign = 0;
+		return copy_1;
+	}
 	while(copy_1.mantissa >= 0x1000000) {
 		copy_1.mantissa >>= 1;
 		copy_1.exponent++;
 	}
 	while(copy_1.mantissa < 0x800000) {
-		if(copy_1.mantissa == 0) {
-			copy_1.exponent = 0;
-			copy_1.sign = 0;
-			return copy_1;
-		}
 		copy_1.mantissa <<=1;
 		copy_1.exponent--;
 	}
@@ -132,14 +122,13 @@ float MyFloat::packFloat() const{
   //unsigned int f_mod = ((sign << 31) + (exponent << 23) + (mantissa));
   float f = 0;
   __asm__(
-  	"shl $31, %%ebx;"
-	"shl $23, %%ecx;"
-	"movl $0, %%eax;"
-	"addl %%ecx, %%eax;"
-	"addl %%ebx, %%eax;"
-	"addl %%edx, %%eax":
-	"=a" (f):
-	"b" (sign), "c" (exponent), "d" (mantissa):
+  	"shl $31, %1;"
+	"shl $23, %2;"
+	"addl %1, %0;"
+	"addl %2, %0;"
+	"addl %3, %0":
+	"+r" (f):
+	"r" (sign), "r" (exponent), "r" (mantissa):
 	"cc"
   );
   return f;
