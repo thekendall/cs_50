@@ -40,6 +40,15 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 
 	copy_1.mantissa += 0x800000;
 	copy_2.mantissa += 0x800000;
+	int count = 0;
+	while(copy_1.mantissa < 0x1000000 && copy_2.mantissa < 0x1000000) 
+	{
+		count++;
+		copy_1.mantissa <<= 1;
+		copy_2.mantissa <<= 1;
+		copy_2.exponent--;
+		copy_1.exponent--;
+	}
 
 	while(copy_1.exponent != copy_2.exponent) {
 		if(copy_1.exponent > copy_2.exponent) {
@@ -50,26 +59,39 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 			copy_1.mantissa = copy_1.mantissa >> 1;
 		}
 	}
-	long int mant1 = (long int)(copy_1.mantissa);
-	long int mant2 = (long int)(copy_2.mantissa);
-	if(copy_1.sign) mant1*=-1;
-	if(copy_2.sign) mant2*=-1;
-	long int mantissa = mant1 + mant2;
-	if(mantissa < 0) {
-		mantissa *= -1;
-		copy_1.sign = 1;
-	} else {
-		copy_1.sign = 0;
-	}
-	copy_1.mantissa = (unsigned int) mantissa;
 
-	if(copy_1.mantissa >= 0x1000000) {
+	// Assign signs and do maths
+	if(copy_1.sign == copy_2.sign) 
+	{
+		copy_1.mantissa += copy_2.mantissa;
+		copy_1.sign = copy_1.sign;
+	} else if (copy_1.sign < copy_2.sign) {
+		if(copy_1.mantissa > copy_2.mantissa) {
+			copy_1.mantissa -= copy_2.mantissa;
+			copy_1.sign = 0;
+		} else {
+			copy_1.mantissa = copy_2.mantissa - copy_1.mantissa;
+			copy_1.sign = 1;
+		}
+	} else {
+		if(copy_1.mantissa > copy_2.mantissa) {
+			copy_1.mantissa -= copy_2.mantissa;
+			copy_1.sign = 1;
+		} else {
+			copy_1.mantissa = copy_2.mantissa - copy_1.mantissa;
+			copy_1.sign = 0;
+		}
+		
+	}
+
+	while(copy_1.mantissa >= 0x1000000) {
 		copy_1.mantissa >>= 1;
 		copy_1.exponent++;
 	}
 	while(copy_1.mantissa < 0x800000) {
 		if(copy_1.mantissa == 0) {
 			copy_1.exponent = 0;
+			copy_1.sign = 0;
 			return copy_1;
 		}
 		copy_1.mantissa <<=1;
@@ -82,31 +104,50 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 
 
 void MyFloat::unpackFloat(float f) {
-	unsigned int f_mod = *((unsigned int *)&f);
-	sign = f_mod >> 31;//Sign
-//	cout << sign << "\n";
+	//unsigned int f_mod = *((unsigned int *)&f);
+	__asm__(
+		//sign = f_mod >> 31
+		"shr $31, %%eax;" 		
+		
+		//exponent = f_mod << 1 >> 24;//Sign
+		"shl $1, %%ebx;"
+		"shr $24, %%ebx;"
 
-	exponent = f_mod << 1 >> 24;//Sign
-//	cout << exponent << "\n";
+		//mantissa = f_mod << 9 >> 9;//Sign
+		"shl $9, %%ecx;"
+		"shr $9, %%ecx":
+
+		"=a" (sign), "=b" (exponent), "=c" (mantissa):
+		"a" (f), "b" (f), "c" (f):
+		"cc"
+	);
+
 	
-	mantissa = f_mod << 9 >> 9;//Sign
-//	cout << mantissa << "\n";
 
 
 }//unpackFloat
 
 float MyFloat::packFloat() const{
   //returns the floating point number represented by this
+  //unsigned int f_mod = ((sign << 31) + (exponent << 23) + (mantissa));
   float f = 0;
-
-  unsigned int f_mod = ((sign << 31) + (exponent << 23) + (mantissa));
-  f = *((float *)&f_mod);
+  __asm__(
+  	"shl $31, %%ebx;"
+	"shl $23, %%ecx;"
+	"movl $0, %%eax;"
+	"addl %%ecx, %%eax;"
+	"addl %%ebx, %%eax;"
+	"addl %%edx, %%eax":
+	"=a" (f):
+	"b" (sign), "c" (exponent), "d" (mantissa):
+	"cc"
+  );
   return f;
 }//packFloat
 //
 //
 
-
+/*
 int main()
 {
 	float x;
@@ -115,4 +156,4 @@ int main()
 	MyFloat b = MyFloat(1.2222222222221);
 	cout << (a - b) << endl;
 }
-
+*/
