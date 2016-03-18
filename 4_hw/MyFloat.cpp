@@ -28,9 +28,10 @@ bool MyFloat::operator==(const float rhs) const {
 	return false;
 }
 
+//Relies on operator+ simply flips the sign of the second argument.
 MyFloat MyFloat::operator-(const MyFloat& rhs) const{
 	MyFloat copy = MyFloat(rhs);
-	copy.sign = !(bool)(copy.sign);
+	copy.sign = !(bool)(copy.sign); //Flip sign for subtraction
 	return *this + copy;
 }
 
@@ -38,55 +39,58 @@ MyFloat MyFloat::operator+(const MyFloat& rhs) const{
 	MyFloat copy_1 = MyFloat(*this);
 	MyFloat copy_2 = MyFloat(rhs);
 
+	//  1.mantissa add the 1
 	copy_1.mantissa += 0x800000;
 	copy_2.mantissa += 0x800000;
-	if(copy_1.mantissa < 0x1000000 && copy_2.mantissa < 0x1000000) 
-	{
-		copy_1.mantissa >>= 1;
-		copy_2.mantissa >>= 1;
-		copy_2.exponent--;
-		copy_1.exponent--;
-	}
 
+	// leave a space for subtraction in lsb
+	copy_1.mantissa <<= 1;
+	copy_2.mantissa <<= 1;
+	copy_2.exponent--;
+	copy_1.exponent--;
+
+	// Shift everything to the right until the two exponents are equal
 	while(copy_1.exponent != copy_2.exponent) {
 		if(copy_1.exponent > copy_2.exponent) {
-			copy_2.exponent--;
+			copy_2.exponent++;
 			copy_2.mantissa = copy_2.mantissa >> 1;
 		} else {
-			copy_1.exponent--;
+			copy_1.exponent++;
 			copy_1.mantissa = copy_1.mantissa >> 1;
 		}
 	}
 
-	// Assign signs and do maths
+	// Does Additions and subtractions
 	if(copy_1.sign == copy_2.sign) 
 	{
 		copy_1.mantissa += copy_2.mantissa;
 		copy_1.sign = copy_1.sign;
 	} else {
-		if(copy_1.mantissa > copy_2.mantissa) {
+		if(copy_1.mantissa > copy_2.mantissa) { // basically !=
 			copy_1.mantissa -= copy_2.mantissa;
-			copy_1.sign = copy_1.sign > 0;
+			copy_1.sign = copy_1.sign; // if copy_1 > copy_2 sign dependent on what copy_1.sign is
 		} else {
 			copy_1.mantissa = copy_2.mantissa - copy_1.mantissa;
-			copy_1.sign = copy_2.sign > 0;
+			copy_1.sign = copy_2.sign; // Same as above
 		}
-		
 	}
-
+	// Return if the answer is zero.
 	if(copy_1.mantissa == 0) {
 		copy_1.exponent = 0;
 		copy_1.sign = 0;
 		return copy_1;
 	}
+	// shift everything to the right until less than 22-bit
 	while(copy_1.mantissa >= 0x1000000) {
 		copy_1.mantissa >>= 1;
 		copy_1.exponent++;
 	}
+	// shift everything to the right to get 1.x
 	while(copy_1.mantissa < 0x800000) {
 		copy_1.mantissa <<=1;
 		copy_1.exponent--;
 	}
+	// restore mantissa without leading 1.mantissa
 	copy_1.mantissa -= 0x800000;
 	return copy_1;
 }
@@ -111,10 +115,6 @@ void MyFloat::unpackFloat(float f) {
 		"a" (f), "b" (f), "c" (f):
 		"cc"
 	);
-
-	
-
-
 }//unpackFloat
 
 float MyFloat::packFloat() const{
