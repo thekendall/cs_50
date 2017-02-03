@@ -3,6 +3,7 @@
   #include "MyFloat.h"
   using namespace std;
 
+// Provided by Mathew Buttner UC Davis
   int main(int argc, char** argv){
     float f1, f2;
     float fres;
